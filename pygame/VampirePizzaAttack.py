@@ -23,10 +23,11 @@ BACKGROUND = transform.scale(background_surf, WINDOW_RES)
 WIDTH = 100
 HEIGHT = 100
 WHITE = (255, 255, 255)
+
 tile_color = WHITE
-for row in range(6):
-    for column in range(11):
-        draw.rect(BACKGROUND, tile_color, (WIDTH*column, HEIGHT*row, WIDTH, HEIGHT), 1)
+tile_grid = []
+
+
 
 GAME_WINDOW.blit(BACKGROUND, (0,0))
 pizza_img = image.load('assets/vampire.png')
@@ -50,24 +51,67 @@ class VampireSprite(sprite.Sprite):
         game_window.blit(self.image, (self.rect.x, self.rect.y))
 
 
+class BackgroundTile(sprite.Sprite):
+    def __init__(self, rect):
+        super().__init__()
+        self.effect = False
+        self.rect = rect
+
+for row in range(6):
+    row_of_tiles = []
+    tile_grid.append(row_of_tiles)
+
+    for column in range(11):
+        tile_rect = Rect(WIDTH*column, HEIGHT*row,WIDTH, HEIGHT)
+        new_tile = BackgroundTile(tile_rect)
+        row_of_tiles.append(new_tile)
+
+        draw.rect(BACKGROUND, tile_color, (WIDTH*column, HEIGHT*row, WIDTH, HEIGHT), 1)
+
+
 all_vampires = sprite.Group()
-
-
-
-
-
-# peperoni
-# draw.circle(GAME_WINDOW, (255, 0, 0), (1100, 600), 25, 0)
-# pizza box
-# draw.rect(GAME_WINDOW, (0, 255, 0), (25, 25, 50, 25), 5)
 
 game_running = True
 while game_running:
     for event in pygame.event.get():
         if event.type == QUIT:
             game_running = False
+        elif event.type == MOUSEBUTTONDOWN:
+            coordinates = mouse.get_pos()
+            x = coordinates[0]
+            y = coordinates[1]
+
+            tile_y = y // 100
+            tile_x = x // 100
+            tile_grid[tile_y][tile_x].effect = True
+            print(x, y)
+            print('You clicked me!')
+
     if randint(1, 360) == 1:
         VampireSprite()
+
+    for vampire in all_vampires:
+        tile_row = tile_grid[vampire.rect.y // 100]
+        vampire_left_side = vampire.rect.x // 100
+        vampire_right_side = (vampire.rect.x + vampire.rect.width) // 100
+        if 0 <= vampire_left_side <= 10:
+            left_tile = tile_row[vampire_left_side]
+        else:
+            left_tile = None
+
+        if 0 <= vampire_right_side <= 10:
+            right_tile = tile_row[vampire_right_side]
+        else:
+            right_tile = None
+
+        if bool(left_tile) and left_tile.effect:
+            vampire.speed = 1
+        if bool(right_tile) and right_tile.effect:
+            if right_tile != left_tile:
+                vampire.speed = 1
+
+        if vampire.rect.x <= 0:
+            vampire.kill()
 
     for vampire in all_vampires:
         vampire.update(GAME_WINDOW)
