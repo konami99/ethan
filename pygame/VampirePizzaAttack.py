@@ -19,6 +19,10 @@ background_img = image.load('assets/restaurant.jpg')
 background_surf = Surface.convert_alpha(background_img)
 BACKGROUND = transform.scale(background_surf, WINDOW_RES)
 
+STARTING_BUCK = 30
+BUCK_RATE = 200
+STARTING_BUCK_BOOSTER = 3
+
 
 WIDTH = 100
 HEIGHT = 100
@@ -50,6 +54,34 @@ class VampireSprite(sprite.Sprite):
 
         game_window.blit(self.image, (self.rect.x, self.rect.y))
 
+class Counters(object):
+    def __init__(self, pizza_bucks, buck_rate, buck_booster):
+        self.loop_count = 0
+        self.display_font = font.Font('assets/pizza_font.ttf', 25)
+        self.pizza_bucks  = pizza_bucks
+        self.buck_rate = buck_rate
+        self.buck_booster = buck_booster
+        self.bucks_rect = None
+    
+    def increment_bucks(self):
+        if self.loop_count % self.buck_rate == 0:
+            self.pizza_bucks = self.pizza_bucks + self.buck_booster
+
+    def draw_bucks(self, game_window):
+        if bool(self.bucks_rect):
+            game_window.blit(BACKGROUND, (self.bucks_rect.x, self.bucks_rect.y), self.bucks_rect)
+
+        bucks_surf = self.display_font.render(str(self.pizza_bucks), True, WHITE)
+        self.bucks_rect = bucks_surf.get_rect()
+        self.bucks_rect.x = WINDOW_WIDTH - 50
+        self.bucks_rect.y = WINDOW_HEIGHT - 50
+        game_window.blit(bucks_surf, self.bucks_rect)
+
+    def update(self, game_window):
+        self.loop_count = self.loop_count + 1
+        self.increment_bucks()
+        self.draw_bucks(game_window)
+
 
 class BackgroundTile(sprite.Sprite):
     def __init__(self, rect):
@@ -70,6 +102,8 @@ for row in range(6):
 
 
 all_vampires = sprite.Group()
+
+counters = Counters(STARTING_BUCK, BUCK_RATE, STARTING_BUCK_BOOSTER)
 
 game_running = True
 while game_running:
@@ -116,6 +150,7 @@ while game_running:
     for vampire in all_vampires:
         vampire.update(GAME_WINDOW)
 
+    counters.update(GAME_WINDOW)
     display.update()
     clock.tick(FRAME_RATE)
 
