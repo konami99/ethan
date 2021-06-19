@@ -23,15 +23,12 @@ STARTING_BUCK = 30
 BUCK_RATE = 200
 STARTING_BUCK_BOOSTER = 3
 
-
 WIDTH = 100
 HEIGHT = 100
 WHITE = (255, 255, 255)
 
 tile_color = WHITE
 tile_grid = []
-
-
 
 GAME_WINDOW.blit(BACKGROUND, (0,0))
 pizza_img = image.load('assets/vampire.png')
@@ -82,12 +79,45 @@ class Counters(object):
         self.increment_bucks()
         self.draw_bucks(game_window)
 
-
 class BackgroundTile(sprite.Sprite):
     def __init__(self, rect):
         super().__init__()
-        self.effect = False
+        self.trap = None
         self.rect = rect
+
+class PlayTile(BackgroundTile):
+    def set_trap(self, trap, counters):
+        if bool(trap) and not bool(self.trap):
+            counters.pizza_bucks -= trap.cost
+            self.trap = trap
+            if trap == EARN:
+                counters.buck_booster += 1
+        return None
+    def draw_trap(self, game_window, trap_applicator):
+        if bool(self.trap):
+            game_window.blit(self.trap.img, (self.rect.x, self.rect))
+
+class ButtonTile(BackgroundTile):
+    def set_trap(self, trap, counters):
+        if counters.pizza_bucks >= self.trap.cost:
+            return self.trap
+        else:
+            return None
+
+    def draw_trap(self, game_windwow, trap_applicator):
+        if bool(trap_applicator.selected):
+            if trap_applicator.selected == self.trap:
+                draw.rect(game_windwow, (238, 190, 47), (self.rect.x, self.rect.y, WIDTH, HEIGHT), 5)
+
+class InactiveTile(BackgroundTile):
+    def set_trap(self, trap, counters):
+        return None
+
+    def draw_trap(self, game_window, trap_applicator):
+        pass
+
+
+
 
 for row in range(6):
     row_of_tiles = []
@@ -97,9 +127,7 @@ for row in range(6):
         tile_rect = Rect(WIDTH*column, HEIGHT*row,WIDTH, HEIGHT)
         new_tile = BackgroundTile(tile_rect)
         row_of_tiles.append(new_tile)
-
         draw.rect(BACKGROUND, tile_color, (WIDTH*column, HEIGHT*row, WIDTH, HEIGHT), 1)
-
 
 all_vampires = sprite.Group()
 
