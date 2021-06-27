@@ -2,6 +2,8 @@ import pygame
 from pygame import *
 from random import randint
 
+from pygame import constants
+
 pygame.init()
 clock = time.Clock()
 
@@ -35,6 +37,18 @@ pizza_img = image.load('assets/vampire.png')
 pizza_surf = Surface.convert_alpha(pizza_img)
 VAMPIRE_PIZZA = transform.scale(pizza_surf, (WIDTH, WIDTH))
 
+garlic_image = image.load('assets/garlic.png')
+garlic_surf = Surface.convert_alpha(garlic_image)
+GARLIC = transform.scale(garlic_surf, (WIDTH, HEIGHT))
+
+cutter_image = image.load('assets/pizzacutter.png')
+cutter_surf = Surface.convert_alpha(cutter_image)
+CUTTER = transform.scale(cutter_surf, (WIDTH, HEIGHT))
+
+pepperoni_image = image.load('assets/pepperoni.png')
+pepperoni_surf = Surface.convert_alpha(pepperoni_image)
+PEPPERONI = transform.scale(pepperoni_surf, (WIDTH, HEIGHT))
+
 class VampireSprite(sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -48,7 +62,6 @@ class VampireSprite(sprite.Sprite):
     def update(self, game_window):
         game_window.blit(BACKGROUND, (self.rect.x, self.rect.y), self.rect)
         self.rect.x -= self.speed
-
         game_window.blit(self.image, (self.rect.x, self.rect.y))
 
 class Counters(object):
@@ -78,6 +91,23 @@ class Counters(object):
         self.loop_count = self.loop_count + 1
         self.increment_bucks()
         self.draw_bucks(game_window)
+
+class Trap(object):
+    def __init__(self, trap_kind, cost, trap_img):
+        self.trap_kind = trap_kind
+        self.cost = cost
+        self.trap_img = trap_img
+
+class TrapApplicator(object):
+    def __init__(self):
+        self.selected = None
+
+    def select_trap(self, trap):
+        if trap.cost <= counters.pizza_bucks:
+            self.selected = trap
+
+    def select_tile(self, tile, counters):
+        self.selected = tile.set_trap(self.selected, counters)
 
 class BackgroundTile(sprite.Sprite):
     def __init__(self, rect):
@@ -145,9 +175,7 @@ while game_running:
 
             tile_y = y // 100
             tile_x = x // 100
-            tile_grid[tile_y][tile_x].effect = True
-            print(x, y)
-            print('You clicked me!')
+            trap_applicator.select_tile(tile_grid[tile_y][tile_x], counters)
 
     if randint(1, 360) == 1:
         VampireSprite()
