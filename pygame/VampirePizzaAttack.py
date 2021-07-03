@@ -3,7 +3,15 @@ from pygame import *
 from random import randint
 
 from pygame import constants
+from pygame import display
+from pygame import time
+from pygame import image
+from pygame import transform
+from pygame import draw
+from pygame import mouse
+from pygame import sprite
 from pygame.draw import rect
+from pygame.font import Font
 
 pygame.init()
 clock = time.Clock()
@@ -67,7 +75,7 @@ class VampireSprite(sprite.Sprite):
 class Counters(object):
     def __init__(self, pizza_bucks, buck_rate, buck_booster):
         self.loop_count = 0
-        self.display_font = font.Font('assets/pizza_font.ttf', 25)
+        self.display_font = Font('assets/pizza_font.ttf', 25)
         self.pizza_bucks  = pizza_bucks
         self.buck_rate = buck_rate
         self.buck_booster = buck_booster
@@ -108,6 +116,8 @@ class TrapApplicator(object):
 
     def select_tile(self, tile, counters):
         self.selected = tile.set_trap(self.selected, counters)
+
+trap_applicator = TrapApplicator()
 
 class BackgroundTile(sprite.Sprite):
     def __init__(self, rect):
