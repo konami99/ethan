@@ -3,6 +3,7 @@ from pygame import *
 from random import randint
 
 from pygame import constants
+from pygame.draw import rect
 
 pygame.init()
 clock = time.Clock()
@@ -32,7 +33,6 @@ WHITE = (255, 255, 255)
 tile_color = WHITE
 tile_grid = []
 
-GAME_WINDOW.blit(BACKGROUND, (0,0))
 pizza_img = image.load('assets/vampire.png')
 pizza_surf = Surface.convert_alpha(pizza_img)
 VAMPIRE_PIZZA = transform.scale(pizza_surf, (WIDTH, WIDTH))
@@ -147,7 +147,13 @@ class InactiveTile(BackgroundTile):
         pass
 
 
+all_vampires = sprite.Group()
 
+counters = Counters(STARTING_BUCK, BUCK_RATE, STARTING_BUCK_BOOSTER)
+
+SLOW = Trap('SLOW', 5, GARLIC)
+DAMAGE = Trap('DAMAGE', 3, CUTTER)
+EARN = Trap('EARN', 7, PEPPERONI)
 
 for row in range(6):
     row_of_tiles = []
@@ -155,13 +161,28 @@ for row in range(6):
 
     for column in range(11):
         tile_rect = Rect(WIDTH*column, HEIGHT*row,WIDTH, HEIGHT)
-        new_tile = BackgroundTile(tile_rect)
+        if column <= 1:
+            new_tile = InactiveTile(tile_rect)
+        else:
+            if row == 5:
+                if 2 <= column <= 4:
+                    new_tile = ButtonTile(tile_rect)
+                    new_tile.trap = [SLOW, DAMAGE, EARN][column - 2]
+                else:
+                    new_tile = InactiveTile(tile_rect)
+            else:
+                new_tile = PlayTile(tile_rect)
+
         row_of_tiles.append(new_tile)
-        draw.rect(BACKGROUND, tile_color, (WIDTH*column, HEIGHT*row, WIDTH, HEIGHT), 1)
+        if row == 5:
+            if 2 <= column <= 4:
+                BACKGROUND.blit(new_tile.trap.trap_img, (new_tile.rect.x, new_tile.rect.y))
 
-all_vampires = sprite.Group()
+        if column !=0 and row != 5:
+            if column != 1:
+                draw.rect(BACKGROUND, tile_color, (WIDTH * column, HEIGHT * row, WIDTH, HEIGHT), 1)
 
-counters = Counters(STARTING_BUCK, BUCK_RATE, STARTING_BUCK_BOOSTER)
+GAME_WINDOW.blit(BACKGROUND, (0, 0))
 
 game_running = True
 while game_running:
