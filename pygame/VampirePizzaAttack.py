@@ -34,6 +34,7 @@ BACKGROUND = transform.scale(background_surf, WINDOW_RES)
 STARTING_BUCK = 30
 BUCK_RATE = 200
 STARTING_BUCK_BOOSTER = 3
+STARTING_HEALTH = 100
 
 MAX_BAD_REVIEWS = 3
 WIN_TIME = FRAME_RATE * 60 * 3
@@ -51,6 +52,14 @@ tile_grid = []
 pizza_img = image.load('assets/vampire.png')
 pizza_surf = Surface.convert_alpha(pizza_img)
 VAMPIRE_PIZZA = transform.scale(pizza_surf, (WIDTH, WIDTH))
+
+med_health_img = image.load('assets/pizza60health.png')
+med_health_surf = Surface.convert_alpha(med_health_img)
+MED_HEALTH = transform.scale(med_health_surf, (WIDTH, HEIGHT))
+
+low_health_img = image.load('assets/pizza30health.png')
+low_health_surf = Surface.convert_alpha(low_health_img)
+LOW_HEALTH = transform.scale(low_health_surf, (WIDTH, HEIGHT))
 
 garlic_image = image.load('assets/garlic.png')
 garlic_surf = Surface.convert_alpha(garlic_image)
@@ -83,7 +92,7 @@ class VampireSprite(sprite.Sprite):
         self.image = VAMPIRE_PIZZA.copy()
         y = 50 + self.lane * 100
         self.rect = self.image.get_rect(center = (1100, y))
-        self.health = 100
+        self.health = STARTING_HEALTH
 
     def update(self, game_window, counters):
         game_window.blit(BACKGROUND, (self.rect.x, self.rect.y), self.rect)
@@ -94,6 +103,13 @@ class VampireSprite(sprite.Sprite):
             if self.rect.x <= 100:
                 counters.bad_reviews += 1
         else:
+            if self.health * 100 // STARTING_HEALTH > 60:
+                self.image = VAMPIRE_PIZZA.copy()
+            elif self.health * 100 // STARTING_HEALTH > 30:
+                self.image = MED_HEALTH.copy()
+            else:
+                self.image = LOW_HEALTH.copy()
+
             game_window.blit(self.image, (self.rect.x, self.rect.y))
 
     def attack(self, tile):
@@ -144,7 +160,7 @@ class Counters(object):
             game_window.blit(BACKGROUND, (self.timer_rect.x, self.timer_rect.y), self.timer_rect)
         timer_surf = self.display_font.render(str((WIN_TIME - self.loop_count) // FRAME_RATE), True, WHITE)
         self.timer_rect = timer_surf.get_rect()
-        self.timer_rect.x = WINDOW_WIDTH - 150
+        self.timer_rect.x = WINDOW_WIDTH - 250
         self.timer_rect.y = WINDOW_HEIGHT - 50
         game_window.blit(timer_surf, self.timer_rect)
 
