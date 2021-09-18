@@ -1,6 +1,6 @@
 import pygame
 from pygame import *
-from random import randint
+from random import randint, choice
 
 from pygame import constants
 from pygame import display
@@ -41,6 +41,7 @@ WIN_TIME = FRAME_RATE * 60 * 3
 
 REG_SPEED = 2
 SLOW_SPEED = 1
+FAST_SPEED = 3
 
 WIDTH = 100
 HEIGHT = 100
@@ -52,6 +53,10 @@ tile_grid = []
 pizza_img = image.load('assets/vampire.png')
 pizza_surf = Surface.convert_alpha(pizza_img)
 VAMPIRE_PIZZA = transform.scale(pizza_surf, (WIDTH, WIDTH))
+
+were_img = image.load('assets/were_pizza.png')
+were_surf = Surface.convert_alpha(were_img)
+WERE_PIZZA = transform.scale(were_surf, (WIDTH, HEIGHT))
 
 med_health_img = image.load('assets/pizza60health.png')
 med_health_surf = Surface.convert_alpha(med_health_img)
@@ -103,11 +108,9 @@ class VampireSprite(sprite.Sprite):
             if self.rect.x <= 100:
                 counters.bad_reviews += 1
         else:
-            if self.health * 100 // STARTING_HEALTH > 60:
-                self.image = VAMPIRE_PIZZA.copy()
-            elif self.health * 100 // STARTING_HEALTH > 30:
+            if 30 < self.health * 100 // STARTING_HEALTH < 60:
                 self.image = MED_HEALTH.copy()
-            else:
+            elif self.health * 100 // STARTING_HEALTH <= 30:
                 self.image = LOW_HEALTH.copy()
 
             game_window.blit(self.image, (self.rect.x, self.rect.y))
@@ -118,6 +121,19 @@ class VampireSprite(sprite.Sprite):
         if tile.trap == DAMAGE:
             self.health = self.health - 1
 
+
+class WerePizza(VampireSprite):
+    def __init__(self):
+        super(WerePizza, self).__init__()
+        self.speed = FAST_SPEED
+        self.image = WERE_PIZZA.copy()
+        #self.rect = self.image.get_rect(center = (1100, y))
+
+    def attack(self, tile):
+        if tile.trap == SLOW:
+            self.speed = REG_SPEED
+        if tile.trap == DAMAGE:
+            self.health -= 1
 
 class Counters(object):
     def __init__(self, pizza_bucks, buck_rate, buck_booster, timer):
@@ -225,6 +241,10 @@ class InactiveTile(BackgroundTile):
 
 all_vampires = sprite.Group()
 
+enemy_types = []
+enemy_types.append(VampireSprite)
+enemy_types.append(WerePizza)
+
 counters = Counters(STARTING_BUCK, BUCK_RATE, STARTING_BUCK_BOOSTER, WIN_TIME)
 
 
@@ -277,7 +297,7 @@ while game_running:
             trap_applicator.select_tile(tile_grid[tile_y][tile_x], counters)
 
     if randint(1, SPAWN_RATE) == 1:
-        VampireSprite()
+        choice(enemy_types)()
 
     for tile_row in tile_grid:
         for tile in tile_row:
