@@ -58,6 +58,10 @@ were_img = image.load('assets/were_pizza.png')
 were_surf = Surface.convert_alpha(were_img)
 WERE_PIZZA = transform.scale(were_surf, (WIDTH, HEIGHT))
 
+zombie_img = image.load('assets/zombie_pizza.png')
+zombie_surf = Surface.convert_alpha(zombie_img)
+ZOMBIE_PIZZA = transform.scale(zombie_surf, (WIDTH, HEIGHT))
+
 med_health_img = image.load('assets/pizza60health.png')
 med_health_surf = Surface.convert_alpha(med_health_img)
 MED_HEALTH = transform.scale(med_health_surf, (WIDTH, HEIGHT))
@@ -134,6 +138,37 @@ class WerePizza(VampireSprite):
             self.speed = REG_SPEED
         if tile.trap == DAMAGE:
             self.health -= 1
+
+class ZombiePizza(VampireSprite):
+    def __init__(self):
+        super(ZombiePizza, self).__init__()
+        self.health = STARTING_HEALTH * 2
+        self.image = ZOMBIE_PIZZA.copy()
+
+    def update(self, GAME_WINDOW, counters):
+        GAME_WINDOW.blit(BACKGROUND, (self.rect.x, self.rect.y), self.rect)
+        self.rect.x -= self.speed
+
+        if self.health <= 0 or self.rect.x <= 100:
+            if self.rect.x <= 100:
+                counters.bad_reviews += 1
+            self.kill()
+        else:
+            percent_health = self.health * 100 // STARTING_HEALTH * 2
+            if percent_health > 80:
+                self.image = ZOMBIE_PIZZA.copy()
+            elif percent_health > 65:
+                self.image = MED_HEALTH.copy()
+            elif percent_health > 50:
+                self.image = LOW_HEALTH.copy()
+            elif percent_health > 35:
+                self.image = ZOMBIE_PIZZA.copy()
+            elif percent_health > 20:
+                self.image = MED_HEALTH.copy()
+            else:
+                self.image = LOW_HEALTH.copy()
+
+            GAME_WINDOW.blit(self.image, (self.rect.x, self.rect.y))
 
 class Counters(object):
     def __init__(self, pizza_bucks, buck_rate, buck_booster, timer):
@@ -244,6 +279,7 @@ all_vampires = sprite.Group()
 enemy_types = []
 enemy_types.append(VampireSprite)
 enemy_types.append(WerePizza)
+enemy_types.append(ZombiePizza)
 
 counters = Counters(STARTING_BUCK, BUCK_RATE, STARTING_BUCK_BOOSTER, WIN_TIME)
 
